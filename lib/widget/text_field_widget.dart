@@ -6,6 +6,7 @@ class TextFieldWidget extends StatelessWidget {
   final Function? onTap;
   final TextInputAction? textInputAction;
   final TextInputType? keyboardType;
+  final double? cursorHeight;
 
   const TextFieldWidget({
     super.key,
@@ -14,12 +15,14 @@ class TextFieldWidget extends StatelessWidget {
     this.onTap,
     this.textInputAction,
     this.keyboardType,
+    this.cursorHeight = 20,
   });
 
   @override
   Widget build(BuildContext context) {
     return Form(
         child: TextFormField(
+      cursorHeight: cursorHeight,
       keyboardType: keyboardType,
       onTap: onTap as void Function()?,
       textInputAction: textInputAction,
