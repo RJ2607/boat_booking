@@ -1,4 +1,6 @@
+import 'package:boat_booking/utils/firestore_ref.dart';
 import 'package:boat_booking/views/booking/boat_details.dart';
+import 'package:firestore_ref/firestore_ref.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
@@ -61,18 +63,39 @@ class BoatSelection extends StatelessWidget {
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.02,
               ),
-              ...List.generate(
-                  1,
-                  (index) => BoatWidget(
-                        boatName: "Boat Name",
-                        description: "description",
-                        price: "price",
-                        image:
-                            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWP-0c4ZhiwP4Xm__iHor9jlpUWR_bHknupg&s",
-                        seats: "40 seats",
+              StreamBuilder(
+                stream:
+                    FirestoreRef.getBoatList(passengerNumberController!.text),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: snapshot.data.docs.length,
+                    itemBuilder: (context, index) {
+                      DocumentSnapshot document = snapshot.data.docs[index];
+
+                      return BoatWidget(
+                        boatName: document['name'],
+                        description: document['description'],
+                        price: document['price'].toString(),
+                        image: document['image'],
+                        seats: document['availableSeats'].toString(),
+                        time: document['fromTime'] + " - " + document['toTime'],
                         passengerNumberController: passengerNumberController,
                         dateController: dateController,
-                      )),
+                        docId: document.id,
+                      );
+                    },
+                  );
+                },
+              ),
             ],
           ),
         ),
@@ -87,8 +110,10 @@ class BoatWidget extends StatelessWidget {
   final String? price;
   final String? image;
   final String? seats;
+  final String? time;
   final TextEditingController? passengerNumberController;
   final TextEditingController? dateController;
+  final String? docId;
 
   const BoatWidget({
     this.boatName,
@@ -96,8 +121,10 @@ class BoatWidget extends StatelessWidget {
     this.price,
     this.image,
     this.seats,
+    this.time,
     this.passengerNumberController,
     this.dateController,
+    required this.docId,
     super.key,
   });
 
@@ -106,10 +133,11 @@ class BoatWidget extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         //navigate to booking details
-        Get.to(BoatDetails(
-          passengerNumberController: passengerNumberController,
-          dateController: dateController,
-        ));
+        Get.to(() => BoatDetails(
+              passengerNumberController: passengerNumberController,
+              dateController: dateController,
+              docId: docId,
+            ));
       },
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Stack(children: [
@@ -138,7 +166,7 @@ class BoatWidget extends StatelessWidget {
                       color: Theme.of(context).scaffoldBackgroundColor,
                     ),
                     child: Text(
-                      seats!,
+                      seats! + " seats",
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -153,11 +181,20 @@ class BoatWidget extends StatelessWidget {
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.02,
         ),
-        Text(
-          boatName!,
-          style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                fontWeight: FontWeight.w400,
-              ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              boatName!,
+              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                    fontWeight: FontWeight.w400,
+                  ),
+            ),
+            Text(time!,
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                      fontWeight: FontWeight.w400,
+                    )),
+          ],
         ),
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.003,
@@ -169,7 +206,7 @@ class BoatWidget extends StatelessWidget {
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.003,
         ),
-        Text(price!,
+        Text("₹ " + price!,
             style: Theme.of(context).textTheme.titleLarge!.copyWith(
                   fontWeight: FontWeight.w400,
                 )),
