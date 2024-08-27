@@ -65,7 +65,7 @@ class BoatSelection extends StatelessWidget {
               ),
               StreamBuilder(
                 stream:
-                    FirestoreRef.getBoatList(passengerNumberController!.text),
+                    FirestoreRef.getBoatListForSelection(passengerNumberController!.text),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return Text('Error: ${snapshot.error}');

@@ -5,7 +5,7 @@ class FirestoreRef {
   static CollectionReference<Map<String, dynamic>> boatDetials =
       db.collection('boatDetails');
 
-  static Stream<dynamic> getBoatList(String passengerNumber) {
+  static Stream<dynamic> getBoatListForSelection(String passengerNumber) {
     return db
         .collection('boatDetails')
         .where('availableSeats',
@@ -13,11 +13,19 @@ class FirestoreRef {
         .snapshots();
   }
 
+  static Stream<dynamic> getBoatList() {
+    return db.collection('boatDetails').snapshots();
+  }
+
   static Future<dynamic> getBoatDetails(String? docId) async {
     return db.collection('boatDetails').doc(docId).get();
   }
+
   // create function to update seat available in boat with docid
   static Future<void> updateSeatAvailable(String? docId, int seat) async {
-    return db.collection('boatDetails').doc(docId).update({'availableSeats': seat});
+    return db
+        .collection('boatDetails')
+        .doc(docId)
+        .update({'availableSeats': seat});
   }
 }
